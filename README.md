@@ -59,6 +59,3 @@ The solution is:\
 Note that the name of the folder gurobi950 changes according to the Gurobi version \
 `sudo make` \
 `sudo cp libgurobi_c++.a ../../lib/`
-
-##References:
-[FASTER planing from MIT](https://github.com/mit-acl/faster)
