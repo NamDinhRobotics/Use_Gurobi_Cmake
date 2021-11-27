@@ -15,14 +15,15 @@ I recommend _/opt_ for a shared installation, but other directories will work as
 
 Copy the Gurobi distribution to the destination directory
 and extract the contents.
+
 Extraction is done with the following command:\
 `tar xvfz gurobi9.0.1_linux64.tar.gz`
 
 This command will create a sub-directory _/opt/gurobi950/linux64_ that contains the complete Gurobi distribution (assuming you chose /opt).
+
 Your <installdir> (which we’ll refer to throughout this document) will be _/opt/gurobi950/linux64_.
 
-The Gurobi Optimizer makes use of several executable files. In order to allow these files to be found
-when needed, you will have to modify a few environment variables:
+The Gurobi Optimizer makes use of several executable files. In order to allow these files to be found when needed, you will have to modify a few environment variables:
 + GUROBI_HOME should point to your <installdir>.
 + PATH should be extended to include <installdir>/bin.
 + LD_LIBRARY_PATH should be extended to include <installdir>/lib.
@@ -44,7 +45,7 @@ Copy our _CmakeLists.txt_ file to the <installdir>_/src_ directory.
 
 And _FindGUROBI.cmake_ file to the <installdir>_/src_ directory.
 
-**_Then, enjoy the Gurobi Optimizer!_**
+_Then, enjoy the Gurobi Optimizer!_
 
 
 ###You can test your installation typing gurobi.sh in the terminal
@@ -57,7 +58,8 @@ std::char_traits<char>, std::allocator<char> > const&)'”
 ``
 
 The solution is:\
-`cd /opt/gurobi800/linux64/src/build  #Note that the name of the folder gurobi800 changes according to the Gurobi version
-sudo make
-sudo cp libgurobi_c++.a ../../lib/`
+`cd /opt/gurobi950/linux64/src/build ` \
+Note that the name of the folder gurobi950 changes according to the Gurobi version \
+`sudo make` \
+`sudo cp libgurobi_c++.a ../../lib/`
 
