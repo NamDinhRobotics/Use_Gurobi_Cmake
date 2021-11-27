@@ -1,7 +1,4 @@
 # Install the Gurobi Optimizer and test it
-Basic installation it follows,
-[https://github.com/mit-acl/faster
-](https://github.com/mit-acl/faster)
 
 ### Step 1:
 Download gurobi9.5.0_linux64.tar.gz from _https://www.gurobi.com/downloads/download-center_.
@@ -45,7 +42,7 @@ Copy our _CmakeLists.txt_ file to the <installdir>_/src_ directory.
 
 And _FindGUROBI.cmake_ file to the <installdir>_/src_ directory.
 
-_Then, enjoy the Gurobi Optimizer!_
+###### Then, enjoy the Gurobi Optimizer!
 
 
 ###You can test your installation typing gurobi.sh in the terminal
@@ -63,3 +60,5 @@ Note that the name of the folder gurobi950 changes according to the Gurobi versi
 `sudo make` \
 `sudo cp libgurobi_c++.a ../../lib/`
 
+###References:
+[FASTER planing from MIT](https://github.com/mit-acl/faster)
