@@ -11,7 +11,7 @@ int main() {
         // Define the problem parameters
         int n = 2; // Number of state variables
         int m = 1; // Number of control inputs
-        int N = 20; // Prediction horizon
+        int N = 10; // Prediction horizon
 
         // Define system matrices
         std::vector<std::vector<double>> A = {{1, 1}, {0, 1}};

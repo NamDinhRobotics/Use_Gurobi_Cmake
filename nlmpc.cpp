@@ -10,9 +10,13 @@ int main() {
         env.start();
 
         // Set Gurobi parameters for better performance
+        // Optimization 1: Tune Gurobi parameters for better performance
         env.set("MIPFocus", "1");
         env.set("MIPGap", "0.01");
-        env.set("TimeLimit", "600"); // 10 minutes
+        env.set("TimeLimit", "600");
+        env.set("Threads", "0");  // Use all available threads
+        env.set("PreSolve", "2");  // Aggressive presolve
+        env.set("Cuts", "2");  // Aggressive cut generation
 
         int N = 10; // Prediction horizon
         double T = 0.1; // Time step
@@ -56,6 +60,8 @@ int main() {
             tan_steer_vars[k] = model.addVar(-GRB_INFINITY, GRB_INFINITY, 0, GRB_CONTINUOUS, "tan_steer_" + std::to_string(k));
         }
 
+        model.update();
+
         // Set initial state constraint
         model.addConstr(x_vars[0] == x_init[0]);
         model.addConstr(y_vars[0] == x_init[1]);
@@ -97,8 +103,8 @@ int main() {
         // Optimize the model
         //model.optimize();
         // Approach 1) Set FuncNonlinear parameter
+        //model.set(GRB_IntParam_NonConvex, 2);
         model.set(GRB_IntParam_FuncNonlinear, 1);
-
         // Optimize the model and print solution
         model.optimize();
 
