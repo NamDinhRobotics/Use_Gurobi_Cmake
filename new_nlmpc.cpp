@@ -21,7 +21,7 @@ int main() {
         env.set("PreSolve", "2");
         env.set("Cuts", "2");
 
-        int N = 20; // Prediction horizon
+        const int N = 20; // Prediction horizon
         double T = 0.1; // Time step
         double L = 2.0; // Wheelbase of the vehicle
 

@@ -38,6 +38,8 @@ add_executable(mpc_test mpc.cpp)
 add_executable(nlmpc nlmpc.cpp)
 add_executable(new_mpc new_nlmpc.cpp)
 add_executable(nlmpc3 nlmpc3.cpp)
+add_executable(sqp sqp_guro.cpp)
+add_executable(gc_pwl gc_pwl_func.cpp)
 
 if(CXX)
     set(CMAKE_CXX_STANDARD 11)
@@ -51,6 +53,10 @@ if(CXX)
             debug ${GUROBI_CXX_DEBUG_LIBRARY})
     target_link_libraries(nlmpc3 optimized ${GUROBI_CXX_LIBRARY}
             debug ${GUROBI_CXX_DEBUG_LIBRARY})
+    target_link_libraries(sqp optimized ${GUROBI_CXX_LIBRARY}
+            debug ${GUROBI_CXX_DEBUG_LIBRARY})
+    target_link_libraries(gc_pwl optimized ${GUROBI_CXX_LIBRARY}
+            debug ${GUROBI_CXX_DEBUG_LIBRARY})
 endif()
 
 target_link_libraries(gurobi_ex ${GUROBI_LIBRARY})
@@ -58,6 +64,8 @@ target_link_libraries(mpc_test ${GUROBI_LIBRARY})
 target_link_libraries(nlmpc ${GUROBI_LIBRARY})
 target_link_libraries(new_mpc ${GUROBI_LIBRARY})
 target_link_libraries(nlmpc3 ${GUROBI_LIBRARY})
+target_link_libraries(sqp ${GUROBI_LIBRARY})
+target_link_libraries(gc_pwl ${GUROBI_LIBRARY})
 
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
     include(FeatureSummary)

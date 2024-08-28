@@ -45,7 +45,8 @@ int main() {
         for (int k = 0; k <= N; ++k) {
             x_vars[k] = model.addVar(-GRB_INFINITY, GRB_INFINITY, 0, GRB_CONTINUOUS, "x_" + std::to_string(k));
             y_vars[k] = model.addVar(-GRB_INFINITY, GRB_INFINITY, 0, GRB_CONTINUOUS, "y_" + std::to_string(k));
-            theta_vars[k] = model.addVar(-GRB_INFINITY, GRB_INFINITY, 0, GRB_CONTINUOUS, "theta_" + std::to_string(k));
+            //theta_vars[k] = model.addVar(-GRB_INFINITY, GRB_INFINITY, 0, GRB_CONTINUOUS, "theta_" + std::to_string(k));
+            theta_vars[k] = model.addVar(-M_PI, M_PI, 0, GRB_CONTINUOUS, "theta_" + std::to_string(k));
         }
 
         // Create control variables
@@ -90,7 +91,11 @@ int main() {
 
         model.setObjective(obj, GRB_MINIMIZE);
 
+        //model.set(GRB_IntParam_FuncPieces, 2);
+        //model.set(GRB_DoubleParam_FuncPieceLength, 1e-5);
+
         auto start = std::chrono::high_resolution_clock::now();
+
 
         // Optimize the model
         model.optimize();
