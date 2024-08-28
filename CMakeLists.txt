@@ -3,6 +3,10 @@ cmake_minimum_required(VERSION 3.2)
 project(gurobi_ex C)
 
 option(CXX "enable C++ compilation" ON)
+# set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_CXX_FLAGS_DEBUG "-g -Wall")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -fno-tree-ccp")
 
 if(CXX)
     enable_language(CXX)
@@ -32,6 +36,8 @@ set(sources mip1_c++.cpp)
 add_executable(gurobi_ex main.cpp)
 add_executable(mpc_test mpc.cpp)
 add_executable(nlmpc nlmpc.cpp)
+add_executable(new_mpc new_nlmpc.cpp)
+add_executable(nlmpc3 nlmpc3.cpp)
 
 if(CXX)
     set(CMAKE_CXX_STANDARD 11)
@@ -41,11 +47,17 @@ if(CXX)
             debug ${GUROBI_CXX_DEBUG_LIBRARY})
     target_link_libraries(nlmpc optimized ${GUROBI_CXX_LIBRARY}
             debug ${GUROBI_CXX_DEBUG_LIBRARY})
+    target_link_libraries(new_mpc optimized ${GUROBI_CXX_LIBRARY}
+            debug ${GUROBI_CXX_DEBUG_LIBRARY})
+    target_link_libraries(nlmpc3 optimized ${GUROBI_CXX_LIBRARY}
+            debug ${GUROBI_CXX_DEBUG_LIBRARY})
 endif()
 
 target_link_libraries(gurobi_ex ${GUROBI_LIBRARY})
 target_link_libraries(mpc_test ${GUROBI_LIBRARY})
 target_link_libraries(nlmpc ${GUROBI_LIBRARY})
+target_link_libraries(new_mpc ${GUROBI_LIBRARY})
+target_link_libraries(nlmpc3 ${GUROBI_LIBRARY})
 
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
     include(FeatureSummary)
