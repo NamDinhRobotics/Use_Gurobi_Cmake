@@ -1,31 +1,17 @@
-#Taken (and modified) from https://support.gurobi.com/hc/en-us/articles/360039499751-How-do-I-use-CMake-to-build-Gurobi-C-C-projects-
-
 find_path(GUROBI_INCLUDE_DIRS
     NAMES gurobi_c.h
     HINTS ${GUROBI_DIR} $ENV{GUROBI_HOME}
     PATH_SUFFIXES include)
 
-set(gurobi_library_names)
-foreach(ver RANGE 00 99)
-  list(APPEND gurobi_library_names gurobi${ver}) #Different versions of Gurobi
-endforeach()
-
 find_library(GUROBI_LIBRARY
-    NAMES gurobi ${gurobi_library_names}
+    NAMES gurobi gurobi100 gurobi110
     HINTS ${GUROBI_DIR} $ENV{GUROBI_HOME}
     PATH_SUFFIXES lib)
 
 if(CXX)
     if(MSVC)
-        # determine Visual Studio year
-        if(MSVC_TOOLSET_VERSION EQUAL 142)
-            set(MSVC_YEAR "2019")
-        elseif(MSVC_TOOLSET_VERSION EQUAL 141)
-            set(MSVC_YEAR "2017")
-        elseif(MSVC_TOOLSET_VERSION EQUAL 140)
-            set(MSVC_YEAR "2015")
-        endif()
-
+        set(MSVC_YEAR "2017")
+        
         if(MT)
             set(M_FLAG "mt")
         else()

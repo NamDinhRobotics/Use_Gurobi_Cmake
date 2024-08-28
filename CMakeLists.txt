@@ -1,30 +1,53 @@
-cmake_minimum_required(VERSION 3.20)
-project(gurobi1)
+cmake_minimum_required(VERSION 3.2)
 
-add_definitions(-std=c++11)
+project(gurobi_ex C)
 
-find_package( Eigen3 REQUIRED )
-include_directories(${EIGEN3_INCLUDE_DIR} ${PCL_INCLUDE_DIRS} include)
-link_directories(${PCL_LIBRARY_DIRS})
-add_definitions(${PCL_DEFINITIONS})
+option(CXX "enable C++ compilation" ON)
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}")
+if(CXX)
+    enable_language(CXX)
+endif()
+
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "Release")
+endif()
+message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+
+# Visual Studio compiler with static runtime libraries
+if(MSVC AND MT)
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
+    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} /MT")
+    set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} /MTd")
+endif()
+
 find_package(GUROBI REQUIRED)
 
-if(GUROBI_FOUND)
-    message(STATUS "GUROBI FOUND")
-else(GUROBI_FOUND)
-    message(FATAL_ERROR "GUROBI NOT FOUND!")
-endif(GUROBI_FOUND)
-
-
-set(CMAKE_BUILD_TYPE Release) #From terminal: catkin config -DCMAKE_BUILD_TYPE=Release (or RelWithDebInfo)
-
 include_directories(${GUROBI_INCLUDE_DIRS})
-#set(GUROBI_LIBRARIES "${GUROBI_CXX_LIBRARY};${GUROBI_LIBRARY}" )
 
-FILE(GLOB GurobiSOFiles $ENV{GUROBI_HOME}/lib/libgurobi*[0-9].so) #files that are start with libgurobi and end with number.so
-set(GUROBI_LIBRARIES "$ENV{GUROBI_HOME}/lib/libgurobi_c++.a;${GurobiSOFiles};$ENV{GUROBI_HOME}/lib/" )
+# list source files here
+set(sources mip1_c++.cpp)
 
-add_executable(gurobi1 main.cpp)
-target_link_libraries(gurobi1 ${PCL_LIBRARIES} ${GUROBI_LIBRARIES})
+add_executable(gurobi_ex main.cpp)
+add_executable(mpc_test mpc.cpp)
+add_executable(nlmpc nlmpc.cpp)
+
+if(CXX)
+    set(CMAKE_CXX_STANDARD 11)
+    target_link_libraries(gurobi_ex optimized ${GUROBI_CXX_LIBRARY}
+            debug ${GUROBI_CXX_DEBUG_LIBRARY})
+    target_link_libraries(mpc_test optimized ${GUROBI_CXX_LIBRARY}
+            debug ${GUROBI_CXX_DEBUG_LIBRARY})
+    target_link_libraries(nlmpc optimized ${GUROBI_CXX_LIBRARY}
+            debug ${GUROBI_CXX_DEBUG_LIBRARY})
+endif()
+
+target_link_libraries(gurobi_ex ${GUROBI_LIBRARY})
+target_link_libraries(mpc_test ${GUROBI_LIBRARY})
+target_link_libraries(nlmpc ${GUROBI_LIBRARY})
+
+if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
+    include(FeatureSummary)
+    feature_summary(WHAT ALL)
+endif()

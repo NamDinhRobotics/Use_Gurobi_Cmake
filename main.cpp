@@ -1,83 +1,75 @@
-/* Copyright 2021, Gurobi Optimization, LLC */
-
-/* This example formulates and solves the following simple QP model:
-
-     minimize    x^2 + x*y + y^2 + y*z + z^2 + 2 x
-     subject to  x + 2 y + 3 z >= 4
-                 x +   y       >= 1
-                 x, y, z non-negative
-
-   It solves it once as a continuous model, and once as an integer model.
-*/
-
 #include "gurobi_c++.h"
-using namespace std;
+#include <iostream>
 
-int
-main(int   argc,
-     char *argv[])
-{
+int main() {
     try {
-        GRBEnv env = GRBEnv();
+        // Create a Gurobi environment
+        GRBEnv env = GRBEnv(true);
+        env.start();
 
+        // Create an empty model
         GRBModel model = GRBModel(env);
 
+        // Define the number of variables
+        int n = 3; // Example size
+        std::vector<GRBVar> vars(n);
+
+        // Define the quadratic objective function
+        // Q matrix (symmetric)
+        std::vector<std::vector<double>> Q = { {1.0, 0.5, 0.0},
+                                               {0.5, 1.0, 0.0},
+                                               {0.0, 0.0, 1.0} };
+
+        // c vector
+        std::vector<double> c = {1.0, 1.0, 1.0};
+
         // Create variables
+        for (int i = 0; i < n; ++i) {
+            vars[i] = model.addVar(-GRB_INFINITY, GRB_INFINITY, 0, GRB_CONTINUOUS, "x" + std::to_string(i));
+        }
 
-        GRBVar x = model.addVar(0.0, 1.0, 0.0, GRB_CONTINUOUS, "x");
-        GRBVar y = model.addVar(0.0, 1.0, 0.0, GRB_CONTINUOUS, "y");
-        GRBVar z = model.addVar(0.0, 1.0, 0.0, GRB_CONTINUOUS, "z");
+        // Set objective function: 0.5 * x^T Q x + c^T x
+        GRBQuadExpr obj = 0;
+        for (int i = 0; i < n; ++i) {
+            for (int j = 0; j <= i; ++j) {
+                obj += 0.5 * Q[i][j] * vars[i] * vars[j];
+            }
+            obj += c[i] * vars[i];
+        }
+        model.setObjective(obj, GRB_MINIMIZE);
 
-        // Set objective
+        // Define constraints
+        int m = 2; // Example number of constraints
+        std::vector<std::vector<double>> A = { {1.0, 1.0, 0.0},
+                                               {0.0, 1.0, 1.0} };
+        std::vector<double> b = {1.0, 1.0};
 
-        GRBQuadExpr obj = x*x + x*y + y*y + y*z + z*z + 2*x;
-        model.setObjective(obj);
+        for (int i = 0; i < m; ++i) {
+            GRBLinExpr constraint_expr = 0;
+            for (int j = 0; j < n; ++j) {
+                constraint_expr += A[i][j] * vars[j];
+            }
+            model.addConstr(constraint_expr <= b[i], "c" + std::to_string(i));
+        }
 
-        // Add constraint: x + 2 y + 3 z >= 4
-
-        model.addConstr(x + 2 * y + 3 * z >= 4, "c0");
-
-        // Add constraint: x + y >= 1
-
-        model.addConstr(x + y >= 1, "c1");
-
-        // Optimize model
-
+        // Solve the model
         model.optimize();
 
-        cout << x.get(GRB_StringAttr_VarName) << " "
-             << x.get(GRB_DoubleAttr_X) << endl;
-        cout << y.get(GRB_StringAttr_VarName) << " "
-             << y.get(GRB_DoubleAttr_X) << endl;
-        cout << z.get(GRB_StringAttr_VarName) << " "
-             << z.get(GRB_DoubleAttr_X) << endl;
-
-        cout << "Obj: " << model.get(GRB_DoubleAttr_ObjVal) << endl;
-
-        // Change variable types to integer
-
-        x.set(GRB_CharAttr_VType, GRB_INTEGER);
-        y.set(GRB_CharAttr_VType, GRB_INTEGER);
-        z.set(GRB_CharAttr_VType, GRB_INTEGER);
-
-        // Optimize model
-
-        model.optimize();
-
-        cout << x.get(GRB_StringAttr_VarName) << " "
-             << x.get(GRB_DoubleAttr_X) << endl;
-        cout << y.get(GRB_StringAttr_VarName) << " "
-             << y.get(GRB_DoubleAttr_X) << endl;
-        cout << z.get(GRB_StringAttr_VarName) << " "
-             << z.get(GRB_DoubleAttr_X) << endl;
-
-        cout << "Obj: " << model.get(GRB_DoubleAttr_ObjVal) << endl;
-
-    } catch(GRBException e) {
-        cout << "Error code = " << e.getErrorCode() << endl;
-        cout << e.getMessage() << endl;
-    } catch(...) {
-        cout << "Exception during optimization" << endl;
+        // Output the results
+        if (model.get(GRB_IntAttr_Status) == GRB_OPTIMAL) {
+            std::cout << "Optimal solution found!" << std::endl;
+            for (int i = 0; i < n; ++i) {
+                std::cout << "x_" << i << " = " << vars[i].get(GRB_DoubleAttr_X) << std::endl;
+            }
+            std::cout << "Objective value: " << model.get(GRB_DoubleAttr_ObjVal) << std::endl;
+        } else {
+            std::cout << "No optimal solution found." << std::endl;
+        }
+    } catch (GRBException& e) {
+        std::cerr << "Error code = " << e.getErrorCode() << std::endl;
+        std::cerr << e.getMessage() << std::endl;
+    } catch (...) {
+        std::cerr << "Exception during optimization" << std::endl;
     }
 
     return 0;
