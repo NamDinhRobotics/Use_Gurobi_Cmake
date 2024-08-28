@@ -2,11 +2,17 @@
 #include <iostream>
 #include <vector>
 #include <cmath>
+#include <chrono>
 
 int main() {
     try {
         GRBEnv env = GRBEnv(true);
         env.start();
+
+        // Set Gurobi parameters for better performance
+        env.set("MIPFocus", "1");
+        env.set("MIPGap", "0.01");
+        env.set("TimeLimit", "600"); // 10 minutes
 
         int N = 10; // Prediction horizon
         double T = 0.1; // Time step
@@ -34,7 +40,7 @@ int main() {
         std::vector<GRBVar> steer_vars(N), a_vars(N);
         std::vector<GRBVar> cos_theta_vars(N), sin_theta_vars(N), tan_steer_vars(N);
 
-        // Create state variables
+        // Create state and control variables
         for (int k = 0; k <= N; ++k) {
             x_vars[k] = model.addVar(-GRB_INFINITY, GRB_INFINITY, 0, GRB_CONTINUOUS, "x_" + std::to_string(k));
             y_vars[k] = model.addVar(-GRB_INFINITY, GRB_INFINITY, 0, GRB_CONTINUOUS, "y_" + std::to_string(k));
@@ -42,12 +48,9 @@ int main() {
             v_vars[k] = model.addVar(-GRB_INFINITY, GRB_INFINITY, 0, GRB_CONTINUOUS, "v_" + std::to_string(k));
         }
 
-        // Create control variables
         for (int k = 0; k < N; ++k) {
             steer_vars[k] = model.addVar(steer_min, steer_max, 0, GRB_CONTINUOUS, "steer_" + std::to_string(k));
             a_vars[k] = model.addVar(a_min, a_max, 0, GRB_CONTINUOUS, "a_" + std::to_string(k));
-
-            // Create variables for cos(theta_k), sin(theta_k), and tan(steer_k)
             cos_theta_vars[k] = model.addVar(-1, 1, 0, GRB_CONTINUOUS, "cos_theta_" + std::to_string(k));
             sin_theta_vars[k] = model.addVar(-1, 1, 0, GRB_CONTINUOUS, "sin_theta_" + std::to_string(k));
             tan_steer_vars[k] = model.addVar(-GRB_INFINITY, GRB_INFINITY, 0, GRB_CONTINUOUS, "tan_steer_" + std::to_string(k));
@@ -63,11 +66,12 @@ int main() {
         GRBQuadExpr obj = 0;
 
         for (int k = 0; k < N; ++k) {
-            // Add general constraints for cos(theta_k), sin(theta_k), and tan(steer_k)
-            model.addGenConstrCos(theta_vars[k], cos_theta_vars[k], "cos_theta_" + std::to_string(k));
-            model.addGenConstrSin(theta_vars[k], sin_theta_vars[k], "sin_theta_" + std::to_string(k));
-            model.addGenConstrTan(steer_vars[k], tan_steer_vars[k], "tan_steer_" + std::to_string(k));
-
+            GRBGenConstr gcf1 =  model.addGenConstrCos(theta_vars[k], cos_theta_vars[k], "cos_theta_" + std::to_string(k));
+            GRBGenConstr gcf2 = model.addGenConstrSin(theta_vars[k], sin_theta_vars[k], "sin_theta_" + std::to_string(k));
+            GRBGenConstr gcf3 = model.addGenConstrTan(steer_vars[k], tan_steer_vars[k], "tan_steer_" + std::to_string(k));
+            //gcf1.set(GRB_IntAttr_FuncNonlinear, 1);
+            //gcf2.set(GRB_IntAttr_FuncNonlinear, 1);
+            //gcf3.set(GRB_IntAttr_FuncNonlinear, 1);
             // Dynamics constraints using sin, cos, and tan variables
             model.addQConstr(x_vars[k+1] == x_vars[k] + T * v_vars[k] * cos_theta_vars[k]);
             model.addQConstr(y_vars[k+1] == y_vars[k] + T * v_vars[k] * sin_theta_vars[k]);
@@ -88,8 +92,19 @@ int main() {
 
         model.setObjective(obj, GRB_MINIMIZE);
 
+        auto start = std::chrono::high_resolution_clock::now();
+
         // Optimize the model
+        //model.optimize();
+        // Approach 1) Set FuncNonlinear parameter
+        model.set(GRB_IntParam_FuncNonlinear, 1);
+
+        // Optimize the model and print solution
         model.optimize();
+
+        auto end = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> elapsed = end - start;
+        std::cout << "Optimization time: " << elapsed.count() << " seconds" << std::endl;
 
         // Output the results
         if (model.get(GRB_IntAttr_Status) == GRB_OPTIMAL) {
